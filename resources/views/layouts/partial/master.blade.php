@@ -162,12 +162,13 @@ Coded by www.creative-tim.com
                             </thead>
                             <tbody>
                             @foreach($items as $item)
+
                                 <tr>
                                     <td>
                                         {{$item->order_id}}
                                     </td>
                                     <td>
-                                        {{$add->product_name}}
+                                        {{$item->product_name}}
                                     </td>
                                     <td>
                                         {{$item->quantity}}

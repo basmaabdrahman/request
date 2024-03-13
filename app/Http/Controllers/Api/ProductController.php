@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ProductRequest;
+use App\Http\Trait\MessageTrait;
 use Illuminate\Http\Request;
 use App\Models\Product;
 
 class ProductController extends Controller
 {
+    use MessageTrait;
     /**
      * Display a listing of the resource.
      */
@@ -24,17 +27,18 @@ class ProductController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(ProductRequest $request)
     {
-        $request->validate([
-            'name'=>'required|max:255',
-            'quantity'=>'required',
-            'image'=>'required',
-        ]);
-        Product::create($request->all());
-        return response()->json('saved',200);
+        $validator = $request->validated();
+        $product = Product::create($request->all());
+        if ($product) {
+            return $this->successMessage('product has been stored','200');
+        }
+        else
+        {
+            return $this->errorMessage('product has not been stored','402');
+        }
     }
-
     /**
      * Display the specified resource.
      */
@@ -46,25 +50,31 @@ class ProductController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request,Product $product)
+    public function update(ProductRequest $request, Product $product)
     {
 
-        $request->validate([
-            'name'=>'required|max:255',
-            'quantity'=>'required',
-            'image'=>'required',
-        ]);
-        $product->update($request->all());
-        return response()->json($product,200);
-    }
+        $request->validated();
+        $updated = $product->update($request->all());
+        if ($updated) {
+            return $this->successMessage('product has been updated', 200);
+        }
+        else{
+            return $this->errorMessage('product has not been updated', 402);
 
+        }
+    }
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
     {
+        $product=Product::destroy($id);
+        if ($product){
+            return $this->successMessage('product has been deleted','200');
+        }
+        else{
+            return $this->errorMessage('product has not been deleted','402');
 
-        Product::destroy($id);
-        return response()->json('Deleted Successfully',200);
+        }
     }
 }

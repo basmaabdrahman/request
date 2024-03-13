@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CartRequest;
+use App\Http\Trait\MessageTrait;
 use App\Models\Cart;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
 {
+    use MessageTrait;
     /**
      * Display a listing of the resource.
      *
@@ -18,27 +21,31 @@ class CartController extends Controller
     }
     public function index()
     {
-        return Cart::all()->load('product');
+
+         Cart::all()->load('product');
 
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(CartRequest $request)
     {
 
         $user=Auth::user()->id;
-        $request->validate([
-            'product_id'=>'required',
-            'quantity'=>'required',
-        ]);
+        $request->validated();
         $pro=Cart::create([
             'user_id'=>$user,
             'product_id'=>$request->product_id,
             'quantity'=>$request->quantity,
         ]);
-        return response()->json($pro,200);
+       if (!$pro){
+           return $this->errorMessage('The Product has not been stored','402');
+       }
+       else{
+           return $this->successMessage('The Product has been stored','200');
+
+       }
     }
 
     /**
@@ -59,11 +66,17 @@ class CartController extends Controller
             'product_id'=>'required',
             'quantity'=>'required',
         ]);
-        $product->update([
+        $updated=$product->update([
             'product_id'=>$request->product_id,
             'quantity'=>$request->quantity,
         ]);
-        return response()->json($product,200);
+        if ($updated) {
+            return $this->successMessage('product has been updated in your cart', 200);
+        }
+        else{
+            return $this->errorMessage('product has not been updated in your cart', 402);
+
+        }
 
     }
 
@@ -74,6 +87,13 @@ class CartController extends Controller
     {
         $product=Cart::findorFail($id);
         $product->delete();
-        return response()->json('deleted successfully','200');
+        if ($product){
+            return $this->successMessage('product has been deleted','200');
+        }
+        else{
+            return $this->errorMessage('product has not been deleted','402');
+
+        }
     }
+
 }
